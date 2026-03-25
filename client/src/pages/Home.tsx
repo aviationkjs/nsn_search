@@ -1,25 +1,19 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Search } from "lucide-react";
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
 import { ResultCard } from "@/components/ResultCard";
-
-import { getLoginUrl } from "@/const";
-import type { NormalizedResult } from "../../../server/crawlers";
+import { search } from "@/lib/api";
+import type { NormalizedResult } from "@/lib/api";
 
 export default function Home() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"NSN" | "PART_NUMBER">("NSN");
   const [results, setResults] = useState<NormalizedResult[]>([]);
   const [searchMode, setSearchMode] = useState<"fallback" | "all">("fallback");
-
-  const searchFallbackMutation = trpc.search.byQuery.useMutation();
-  const searchAllMutation = trpc.search.allSources.useMutation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery.trim()) {
@@ -27,58 +21,28 @@ export default function Home() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      if (searchMode === "fallback") {
-        const response = await searchFallbackMutation.mutateAsync({
-          query: searchQuery,
-          searchType,
-        });
-        setResults(response.data ? [response.data] : []);
+      const response = await search({
+        query: searchQuery,
+        searchType,
+        searchMode,
+      });
+
+      if (response.success) {
+        setResults(response.data);
       } else {
-        const response = await searchAllMutation.mutateAsync({
-          query: searchQuery,
-          searchType,
-        });
-        setResults(response.data || []);
+        alert(response.message);
+        setResults([]);
       }
     } catch (error) {
       console.error("Search error:", error);
       alert("검색 중 오류가 발생했습니다");
+      setResults([]);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">NSN Search System</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-center text-muted-foreground">
-              NSN 및 Part Number를 검색하여 부품 정보를 조회하세요
-            </p>
-            <Button
-              className="w-full"
-              onClick={() => (window.location.href = getLoginUrl())}
-            >
-              GitHub로 로그인
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -131,9 +95,9 @@ export default function Home() {
               />
               <Button
                 onClick={() => handleSearch()}
-                disabled={searchFallbackMutation.isPending || searchAllMutation.isPending}
+                disabled={isLoading}
               >
-                {searchFallbackMutation.isPending || searchAllMutation.isPending ? (
+                {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Search className="w-4 h-4" />
@@ -143,32 +107,30 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 gap-6">
-          {/* 검색 결과 */}
-          <div>
-            {results.length > 0 ? (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">
-                  검색 결과 ({results.length}개)
-                </h2>
-                {results.map((result, idx) => (
-                  <ResultCard key={idx} result={result} />
-                ))}
-              </div>
-            ) : query ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  검색 결과가 없습니다
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  검색어를 입력하여 시작하세요
-                </CardContent>
-              </Card>
-            )}
-          </div>
+        {/* 검색 결과 */}
+        <div>
+          {results.length > 0 ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">
+                검색 결과 ({results.length}개)
+              </h2>
+              {results.map((result, idx) => (
+                <ResultCard key={idx} result={result} />
+              ))}
+            </div>
+          ) : query ? (
+            <Card>
+              <CardContent className="pt-6 text-center text-muted-foreground">
+                {isLoading ? "검색 중..." : "검색 결과가 없습니다"}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-6 text-center text-muted-foreground">
+                검색어를 입력하여 시작하세요
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

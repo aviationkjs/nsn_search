@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
-import type { NormalizedResult } from "../../../server/crawlers";
+import type { NormalizedResult } from "@/lib/api";
 
 interface ResultCardProps {
   result: NormalizedResult;
@@ -15,7 +15,7 @@ export function ResultCard({ result }: ResultCardProps) {
     const text = `NSN: ${result.nsn}
 Item Name: ${result.itemName}
 Part Number: ${result.partNumber}
-CAGE Code: ${result.cageCode}
+CAGE Code: ${result.cage}
 Description: ${result.description}
 Source: ${result.source}`;
 
@@ -61,7 +61,7 @@ Source: ${result.source}`;
             <label className="text-sm font-semibold text-muted-foreground">
               CAGE Code
             </label>
-            <p className="text-sm font-mono">{result.cageCode}</p>
+            <p className="text-sm font-mono">{result.cage}</p>
           </div>
         </div>
         <div>
