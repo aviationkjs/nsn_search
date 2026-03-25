@@ -25,4 +25,18 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Search history table for tracking user searches
+ */
+export const searchHistory = mysqlTable("searchHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  searchType: mysqlEnum("searchType", ["NSN", "PART_NUMBER"]).notNull(),
+  searchQuery: varchar("searchQuery", { length: 255 }).notNull(),
+  results: text("results"), // JSON string of search results
+  resultCount: int("resultCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SearchHistory = typeof searchHistory.$inferSelect;
+export type InsertSearchHistory = typeof searchHistory.$inferInsert;

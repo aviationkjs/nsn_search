@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, searchHistory, InsertSearchHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,60 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * 검색 기록 저장
+ */
+export async function saveSearchHistory(data: InsertSearchHistory) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot save search history: database not available");
+    return;
+  }
+
+  try {
+    await db.insert(searchHistory).values(data);
+  } catch (error) {
+    console.error("[Database] Failed to save search history:", error);
+  }
+}
+
+/**
+ * 사용자의 최근 검색 기록 조회 (최대 20개)
+ */
+export async function getUserSearchHistory(userId: number, limit = 20) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get search history: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(searchHistory)
+      .where(eq(searchHistory.userId, userId))
+      .orderBy((t) => t.createdAt)
+      .limit(limit);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get search history:", error);
+    return [];
+  }
+}
+
+/**
+ * 사용자의 검색 기록 전체 삭제
+ */
+export async function clearUserSearchHistory(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot clear search history: database not available");
+    return;
+  }
+
+  try {
+    await db.delete(searchHistory).where(eq(searchHistory.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to clear search history:", error);
+  }
+}

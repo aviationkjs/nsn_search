@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `searchHistory` (\n  `id` int AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `searchType` enum('NSN', 'PART_NUMBER') NOT NULL,\n  `searchQuery` varchar(255) NOT NULL,\n  `results` text,\n  `resultCount` int DEFAULT 0,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  INDEX `idx_userId_createdAt` (`userId`, `createdAt`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2DbFWBt8gwnQnj8.root --database BXyM8tsiBzyiLesGPs5z3o --execute CREATE TABLE IF NOT EXISTS `searchHistory` (\n  `id` int AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `searchType` enum('NSN', 'PART_NUMBER') NOT NULL,\n  `searchQuery` varchar(255) NOT NULL,\n  `results` text,\n  `resultCount` int DEFAULT 0,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  INDEX `idx_userId_createdAt` (`userId`, `createdAt`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1720
+}
