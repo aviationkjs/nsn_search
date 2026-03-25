@@ -7,7 +7,7 @@ import { Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { ResultCard } from "@/components/ResultCard";
-import { SearchHistory } from "@/components/SearchHistory";
+
 import { getLoginUrl } from "@/const";
 import type { NormalizedResult } from "../../../server/crawlers";
 
@@ -47,11 +47,7 @@ export default function Home() {
     }
   };
 
-  const handleSelectHistory = (historyQuery: string, historyType: "NSN" | "PART_NUMBER") => {
-    setQuery(historyQuery);
-    setSearchType(historyType);
-    handleSearch(historyQuery);
-  };
+
 
   if (authLoading) {
     return (
@@ -147,14 +143,9 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 검색 기록 */}
-          <div className="lg:col-span-1">
-            <SearchHistory onSelectHistory={handleSelectHistory} />
-          </div>
-
+        <div className="grid grid-cols-1 gap-6">
           {/* 검색 결과 */}
-          <div className="lg:col-span-2">
+          <div>
             {results.length > 0 ? (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">
